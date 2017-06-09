@@ -371,6 +371,11 @@ export interface IEditorOptions {
 	 */
 	autoClosingBrackets?: boolean;
 	/**
+	 * Enable auto indentation adjustment.
+	 * Defaults to false.
+	 */
+	autoIndent?: boolean;
+	/**
 	 * Enable format on type.
 	 * Defaults to false.
 	 */
@@ -796,6 +801,7 @@ export interface IValidatedEditorOptions {
 	readonly wordWrapBreakAfterCharacters: string;
 	readonly wordWrapBreakObtrusiveCharacters: string;
 	readonly autoClosingBrackets: boolean;
+	readonly autoIndent: boolean;
 	readonly dragAndDrop: boolean;
 	readonly emptySelectionClipboard: boolean;
 	readonly useTabStops: boolean;
@@ -826,6 +832,7 @@ export class InternalEditorOptions {
 	// ---- cursor options
 	readonly wordSeparators: string;
 	readonly autoClosingBrackets: boolean;
+	readonly autoIndent: boolean;
 	readonly useTabStops: boolean;
 	readonly tabFocusMode: boolean;
 	readonly dragAndDrop: boolean;
@@ -851,6 +858,7 @@ export class InternalEditorOptions {
 		multiCursorModifier: 'altKey' | 'ctrlKey' | 'metaKey';
 		wordSeparators: string;
 		autoClosingBrackets: boolean;
+		autoIndent: boolean;
 		useTabStops: boolean;
 		tabFocusMode: boolean;
 		dragAndDrop: boolean;
@@ -870,6 +878,7 @@ export class InternalEditorOptions {
 		this.multiCursorModifier = source.multiCursorModifier;
 		this.wordSeparators = source.wordSeparators;
 		this.autoClosingBrackets = source.autoClosingBrackets;
+		this.autoIndent = source.autoIndent;
 		this.useTabStops = source.useTabStops;
 		this.tabFocusMode = source.tabFocusMode;
 		this.dragAndDrop = source.dragAndDrop;
@@ -895,6 +904,7 @@ export class InternalEditorOptions {
 			&& this.multiCursorModifier === other.multiCursorModifier
 			&& this.wordSeparators === other.wordSeparators
 			&& this.autoClosingBrackets === other.autoClosingBrackets
+			&& this.autoIndent === other.autoIndent
 			&& this.useTabStops === other.useTabStops
 			&& this.tabFocusMode === other.tabFocusMode
 			&& this.dragAndDrop === other.dragAndDrop
@@ -921,6 +931,7 @@ export class InternalEditorOptions {
 			multiCursorModifier: (this.multiCursorModifier !== newOpts.multiCursorModifier),
 			wordSeparators: (this.wordSeparators !== newOpts.wordSeparators),
 			autoClosingBrackets: (this.autoClosingBrackets !== newOpts.autoClosingBrackets),
+			autoIndent: (this.autoIndent !== newOpts.autoIndent),
 			useTabStops: (this.useTabStops !== newOpts.useTabStops),
 			tabFocusMode: (this.tabFocusMode !== newOpts.tabFocusMode),
 			dragAndDrop: (this.dragAndDrop !== newOpts.dragAndDrop),
@@ -1260,6 +1271,7 @@ export interface IConfigurationChangedEvent {
 	readonly multiCursorModifier: boolean;
 	readonly wordSeparators: boolean;
 	readonly autoClosingBrackets: boolean;
+	readonly autoIndent: boolean;
 	readonly useTabStops: boolean;
 	readonly tabFocusMode: boolean;
 	readonly dragAndDrop: boolean;
@@ -1438,6 +1450,7 @@ export class EditorOptionsValidator {
 			wordWrapBreakAfterCharacters: _string(opts.wordWrapBreakAfterCharacters, defaults.wordWrapBreakAfterCharacters),
 			wordWrapBreakObtrusiveCharacters: _string(opts.wordWrapBreakObtrusiveCharacters, defaults.wordWrapBreakObtrusiveCharacters),
 			autoClosingBrackets: _boolean(opts.autoClosingBrackets, defaults.autoClosingBrackets),
+			autoIndent: _boolean(opts.autoIndent, defaults.autoIndent),
 			dragAndDrop: _boolean(opts.dragAndDrop, defaults.dragAndDrop),
 			emptySelectionClipboard: _boolean(opts.emptySelectionClipboard, defaults.emptySelectionClipboard),
 			useTabStops: _boolean(opts.useTabStops, defaults.useTabStops),
@@ -1662,6 +1675,7 @@ export class InternalEditorOptionsFactory {
 			wordWrapBreakAfterCharacters: opts.wordWrapBreakAfterCharacters,
 			wordWrapBreakObtrusiveCharacters: opts.wordWrapBreakObtrusiveCharacters,
 			autoClosingBrackets: opts.autoClosingBrackets,
+			autoIndent: opts.autoIndent,
 			dragAndDrop: opts.dragAndDrop,
 			emptySelectionClipboard: opts.emptySelectionClipboard,
 			useTabStops: opts.useTabStops,
@@ -1867,6 +1881,7 @@ export class InternalEditorOptionsFactory {
 			multiCursorModifier: opts.multiCursorModifier,
 			wordSeparators: opts.wordSeparators,
 			autoClosingBrackets: opts.autoClosingBrackets,
+			autoIndent: opts.autoIndent,
 			useTabStops: opts.useTabStops,
 			tabFocusMode: opts.readOnly ? true : env.tabFocusMode,
 			dragAndDrop: opts.dragAndDrop,
@@ -2080,6 +2095,7 @@ export const EDITOR_DEFAULTS: IValidatedEditorOptions = {
 	wordWrapBreakAfterCharacters: ' \t})]?|&,;¢°′″‰℃、。｡､￠，．：；？！％・･ゝゞヽヾーァィゥェォッャュョヮヵヶぁぃぅぇぉっゃゅょゎゕゖㇰㇱㇲㇳㇴㇵㇶㇷㇸㇹㇺㇻㇼㇽㇾㇿ々〻ｧｨｩｪｫｬｭｮｯｰ’”〉》」』】〕）］｝｣',
 	wordWrapBreakObtrusiveCharacters: '.',
 	autoClosingBrackets: true,
+	autoIndent: false,
 	dragAndDrop: true,
 	emptySelectionClipboard: true,
 	useTabStops: true,

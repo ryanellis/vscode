@@ -218,6 +218,7 @@ const configurationValueWhitelist = [
 	'editor.quickSuggestionsDelay',
 	'editor.parameterHints',
 	'editor.autoClosingBrackets',
+	'editor.autoindent',
 	'editor.formatOnType',
 	'editor.formatOnPaste',
 	'editor.suggestOnTriggerCharacters',
