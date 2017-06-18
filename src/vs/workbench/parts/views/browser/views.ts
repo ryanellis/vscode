@@ -284,13 +284,13 @@ export interface IViewletViewOptions extends IViewOptions {
 
 }
 
-interface IViewState {
+export interface IViewState {
 
-	collapsed: boolean;
+	collapsed?: boolean;
 
-	size: number;
+	size?: number;
 
-	isHidden: boolean;
+	isHidden?: boolean;
 
 }
 
@@ -305,7 +305,7 @@ export class ComposedViewsViewlet extends Viewlet {
 	private viewletSettings: any;
 
 	private readonly viewsContextKeys: Set<string> = new Set<string>();
-	private readonly viewsStates: Map<string, IViewState>;
+	private viewsStates: Map<string, IViewState>;
 
 	constructor(
 		id: string,
@@ -323,7 +323,6 @@ export class ComposedViewsViewlet extends Viewlet {
 
 		this.views = [];
 		this.viewletSettings = this.getMemento(storageService, Scope.WORKSPACE);
-		this.viewsStates = this.loadViewsStates();
 
 		this._register(ViewsRegistry.onViewsRegistered(() => this.onViewDescriptorsChanged()));
 		this._register(ViewsRegistry.onViewsDeregistered(() => this.onViewDescriptorsChanged()));
@@ -333,6 +332,7 @@ export class ComposedViewsViewlet extends Viewlet {
 	public create(parent: Builder): TPromise<void> {
 		super.create(parent);
 
+		this.viewsStates = this.loadViewsStates();
 		this.viewletContainer = DOM.append(parent.getHTMLElement(), DOM.$(''));
 		this.splitView = this._register(new SplitView(this.viewletContainer));
 		this._register(this.splitView.onFocus((view: IView) => this.lastFocusedView = view));
@@ -419,14 +419,13 @@ export class ComposedViewsViewlet extends Viewlet {
 	}
 
 	private getToggleVisibilityActions(viewDescriptors: IViewDescriptor[]): IAction[] {
-		// return viewDescriptors.map(viewDescriptor => (<IAction>{
-		// 	id: `${viewDescriptor.id}.toggleVisibility`,
-		// 	label: viewDescriptor.name,
-		// 	checked: this.isCurrentlyVisible(viewDescriptor),
-		// 	enabled: this.contextKeyService.contextMatchesRules(viewDescriptor.when),
-		// 	run: () => this.toggleViewVisibility(viewDescriptor)
-		// }));
-		return [];
+		return viewDescriptors.map(viewDescriptor => (<IAction>{
+			id: `${viewDescriptor.id}.toggleVisibility`,
+			label: viewDescriptor.name,
+			checked: this.isCurrentlyVisible(viewDescriptor),
+			enabled: this.contextKeyService.contextMatchesRules(viewDescriptor.when),
+			run: () => this.toggleViewVisibility(viewDescriptor)
+		}));
 	}
 
 	protected toggleViewVisibility(viewDescriptor: IViewDescriptor): void {
@@ -436,7 +435,7 @@ export class ComposedViewsViewlet extends Viewlet {
 			viewState = viewState || this.createViewState(view);
 			viewState.isHidden = true;
 		} else {
-			viewState = viewState || { collapsed: true, size: void 0, isHidden: false };
+			viewState = viewState || {};
 			viewState.isHidden = false;
 		}
 		this.viewsStates.set(viewDescriptor.id, viewState);
@@ -505,7 +504,7 @@ export class ComposedViewsViewlet extends Viewlet {
 		if (toAdd.length || toRemove.length) {
 			for (const view of this.views) {
 				let viewState = this.viewsStates.get(view.id);
-				if (!viewState || view.size !== viewState.size || !view.isExpanded() !== viewState.collapsed) {
+				if (!viewState || view.size !== viewState.size || !view.isExpanded() !== !!viewState.collapsed) {
 					viewState = { ...this.createViewState(view), isHidden: viewState && viewState.isHidden };
 					this.viewsStates.set(view.id, viewState);
 					this.splitView.updateWeight(view, viewState.size);
@@ -602,7 +601,7 @@ export class ComposedViewsViewlet extends Viewlet {
 		this.storageService.store(this.viewletStateStorageId, JSON.stringify(viewsStates), this.contextService.hasWorkspace() ? StorageScope.WORKSPACE : StorageScope.GLOBAL);
 	}
 
-	private loadViewsStates(): Map<string, IViewState> {
+	protected loadViewsStates(): Map<string, IViewState> {
 		const viewsStates = JSON.parse(this.storageService.get(this.viewletStateStorageId, this.contextService.hasWorkspace() ? StorageScope.WORKSPACE : StorageScope.GLOBAL, '{}'));
 		return Object.keys(viewsStates).reduce((result, id) => {
 			const viewState = <IViewState>viewsStates[id];

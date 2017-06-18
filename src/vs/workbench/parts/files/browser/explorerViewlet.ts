@@ -10,8 +10,8 @@ import { IActionRunner } from 'vs/base/common/actions';
 import { TPromise } from 'vs/base/common/winjs.base';
 import * as DOM from 'vs/base/browser/dom';
 import { Builder } from 'vs/base/browser/builder';
-import { VIEWLET_ID, ExplorerViewletVisibleContext, IFilesConfiguration, OpenEditorsVisibleContext, OpenEditorsVisibleCondition } from 'vs/workbench/parts/files/common/files';
-import { ComposedViewsViewlet, IView, IViewletViewOptions } from 'vs/workbench/parts/views/browser/views';
+import { VIEWLET_ID, ExplorerViewletVisibleContext, IFilesConfiguration } from 'vs/workbench/parts/files/common/files';
+import { ComposedViewsViewlet, IView, IViewletViewOptions, IViewState } from 'vs/workbench/parts/views/browser/views';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { IConfigurationEditingService } from 'vs/workbench/services/configuration/common/configurationEditing';
 import { ActionRunner, FileViewletState } from 'vs/workbench/parts/files/browser/views/explorerViewer';
@@ -39,7 +39,6 @@ export class ExplorerViewlet extends ComposedViewsViewlet {
 
 	private viewletState: FileViewletState;
 	private viewletVisibleContextKey: IContextKey<boolean>;
-	private openEditorsVisibleContextKey: IContextKey<boolean>;
 
 	constructor(
 		@ITelemetryService telemetryService: ITelemetryService,
@@ -58,11 +57,8 @@ export class ExplorerViewlet extends ComposedViewsViewlet {
 
 		this.viewletState = new FileViewletState();
 		this.viewletVisibleContextKey = ExplorerViewletVisibleContext.bindTo(contextKeyService);
-		this.openEditorsVisibleContextKey = OpenEditorsVisibleContext.bindTo(contextKeyService);
 
 		this.registerViews();
-		this.onConfigurationUpdated();
-		this._register(this.configurationService.onDidUpdateConfiguration(e => this.onConfigurationUpdated()));
 	}
 
 	public create(parent: Builder): TPromise<void> {
@@ -89,8 +85,7 @@ export class ExplorerViewlet extends ComposedViewsViewlet {
 			name: OpenEditorsView.NAME,
 			location: ViewLocation.Explorer,
 			ctor: OpenEditorsView,
-			order: 0,
-			when: OpenEditorsVisibleCondition
+			order: 0
 		};
 	}
 
@@ -112,10 +107,6 @@ export class ExplorerViewlet extends ComposedViewsViewlet {
 			ctor: ExplorerView,
 			order: 1
 		};
-	}
-
-	private onConfigurationUpdated(): void {
-		this.openEditorsVisibleContextKey.set(!this.contextService.hasWorkspace() || (<IFilesConfiguration>this.configurationService.getConfiguration()).explorer.openEditors.visible !== 0);
 	}
 
 	protected createView(viewDescriptor: IViewDescriptor, options: IViewletViewOptions): IView {
@@ -247,5 +238,15 @@ export class ExplorerViewlet extends ComposedViewsViewlet {
 
 	public getViewletState(): FileViewletState {
 		return this.viewletState;
+	}
+
+	protected loadViewsStates(): Map<string, IViewState> {
+		const viewsStates = super.loadViewsStates();
+		const openEditorsViewState: IViewState = viewsStates.get(OpenEditorsView.ID) || {};
+		if (openEditorsViewState.isHidden === void 0 && (<IFilesConfiguration>this.configurationService.getConfiguration()).explorer.openEditors.visible === 0) {
+			openEditorsViewState.isHidden = true;
+		}
+		viewsStates.set(OpenEditorsView.ID, openEditorsViewState);
+		return viewsStates;
 	}
 }
